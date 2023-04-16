@@ -1,15 +1,28 @@
-import { configureStore, ConfigureStoreOptions } from "@reduxjs/toolkit"
+import {
+  configureStore,
+  combineReducers,
+  PreloadedState,
+} from "@reduxjs/toolkit"
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux"
+import { pokeApi } from "features/pokeApi"
 
-const createStore = (options?: ConfigureStoreOptions["preloadedState"]) =>
+const rootReducer = combineReducers({
+  [pokeApi.reducerPath]: pokeApi.reducer,
+})
+
+export const setupStore = (options?: PreloadedState<RootState>) =>
   configureStore({
-    reducer: {},
-    middleware: (getDefaultMiddleware) => getDefaultMiddleware(),
+    reducer: {
+      [pokeApi.reducerPath]: pokeApi.reducer,
+    },
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware().concat(pokeApi.middleware),
     ...options,
   })
 
-export const store = createStore()
+export const store = setupStore()
 type AppDispatch = typeof store.dispatch
 export const useAppDispatch = () => useDispatch<AppDispatch>()
-export type AppState = ReturnType<typeof store.getState>
-export const useAppSelector: TypedUseSelectorHook<AppState> = useSelector
+export type RootState = ReturnType<typeof rootReducer>
+export type AppStore = ReturnType<typeof setupStore>
+export const useAppSelector: TypedUseSelectorHook<AppStore> = useSelector
